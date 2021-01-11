@@ -16,60 +16,15 @@ import { Colors, Metrics } from '../Themes/'
 import TextUtil from '../Util/TextUtil'
 import ModalFilter, { FILTER_TYPE } from './ModalFilter'
 
-const DATA = [
-  {
-    id: "FT45115",
-    amount: 2739464,
-    unique_code: 788,
-    status: "SUCCESS",
-    sender_bank: "bni",
-    account_number: "1529828024",
-    beneficiary_name: "Selin Dawe",
-    beneficiary_bank: "muamalat",
-    remark: "sample remark",
-    created_at: "2021-01-09 11:47:42",
-    completed_at: "2021-01-09 11:47:42",
-    fee: 0
-  },
-  {
-    id: "FT69844",
-    amount: 3380924,
-    unique_code: 158,
-    status: "SUCCESS",
-    sender_bank: "bni",
-    account_number: "1390677145",
-    beneficiary_name: "Shanice Harwood",
-    beneficiary_bank: "bri",
-    remark: "sample remark",
-    created_at: "2021-01-09 11:46:42",
-    completed_at: "2021-01-09 11:47:42",
-    fee: 0
-  },
-  {
-    id: "FT6565",
-    amount: 1574619,
-    unique_code: 852,
-    status: "PENDING",
-    sender_bank: "bni",
-    account_number: "8714126865",
-    beneficiary_name: "Rhiannan Simmons",
-    beneficiary_bank: "muamalat",
-    remark: "sample remark",
-    created_at: "2021-01-09 13:16:19",
-    completed_at: "2021-01-09 13:17:19",
-    fee: 0
-  }
-
-]
-
 const ListTransactionScreen = ({
   navigation,
   getTransactions,
   sortTransactions,
+  filterTransactions,
   transactions }) => {
 
   const [isModalVisible, setModalVisible] = useState(false);
-  const [filterSelected, setFilterSelected] = useState(FILTER_TYPE.nameAsc);
+  const [filterSelected, setFilterSelected] = useState(FILTER_TYPE.dateDesc);
 
   useEffect(() => {
     getTransactions();
@@ -83,7 +38,7 @@ const ListTransactionScreen = ({
       amount,
       created_at,
       status
-    } = transactions.payload[item]
+    } = item
 
     let indicatorColor = Colors.orange
     let btnStatusStyle = styles.btnPending
@@ -99,7 +54,7 @@ const ListTransactionScreen = ({
 
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate('Detail', { data: transactions.payload[item] })}
+        onPress={() => navigation.navigate('Detail', { data: item })}
         style={styles.item}>
         <View style={[styles.itemIndicator, { backgroundColor: indicatorColor }]} />
         <View style={styles.itemContent}>
@@ -125,7 +80,7 @@ const ListTransactionScreen = ({
   };
 
   onSelectFilter = (selected) => {
-    sortTransactions()
+    sortTransactions(selected)
     setFilterSelected(selected)
   };
 
@@ -139,6 +94,7 @@ const ListTransactionScreen = ({
           <TextInput
             style={{ flex: 1 }}
             placeholder={'Cari nama, bank, atau nominal'}
+            onChangeText={(text) => filterTransactions(text)}
           />
           <TouchableOpacity
             onPress={() => setModalVisible(true)}
@@ -149,10 +105,10 @@ const ListTransactionScreen = ({
         </View>
 
         <FlatList
-          data={transactions && transactions.payload ? Object.keys(transactions.payload) : []}
+          data={transactions.payload}
           refreshing={transactions.fetching}
           renderItem={renderItem}
-          keyExtractor={item => item.toString()}
+          keyExtractor={item => item.id.toString()}
         // ListHeaderComponent={renderHeader}
         />
         <ModalFilter
@@ -248,8 +204,11 @@ const mapDispatchToProps = (dispatch) => {
     getTransactions: (value) => {
       dispatch(TransactionsActions.getTransactionsRequest(value));
     },
-    sortTransactions: (value) => {
-      dispatch(TransactionsActions.sortTransactions(value));
+    sortTransactions: (sort) => {
+      dispatch(TransactionsActions.sortTransactions(sort));
+    },
+    filterTransactions: (sort) => {
+      dispatch(TransactionsActions.filterTransactions(sort));
     },
   };
 };
